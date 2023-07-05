@@ -1,53 +1,51 @@
-#ifndef KMEANS_H
-#define KMEANS_H
+#include <stdio.h>
+#include "kmeans.h"
 
-#include <stdlib.h>
-#include <math.h>
+int main() {
+    // Sample data
+    double X[] = {1.0, 1.0, 2.0, 2.0, 5.0, 4.0, 5.0, 5.0, 9.0, 8.0, 9.0, 10.0};
+    int n_samples = 6;
+    int n_features = 2;
+    int n_clusters = 2;
 
-typedef struct {
-    double x;
-    double y;
-} Point;
+    // Fit K-means model
+    struct KMeansResult result = kmeans_fit(X, n_samples, n_features, n_clusters);
 
-typedef struct {
-    Point* data;
-    int size;
-} Dataset;
-
-typedef struct {
-    Point* centroids;
-    int* labels;
-    int num_clusters;
-    double inertia;
-} KMeansResult;
-
-// Helper function to calculate the Euclidean distance between two points
-static double euclidean_distance(Point p1, Point p2) {
-    double dx = p1.x - p2.x;
-    double dy = p1.y - p2.y;
-    return sqrt(dx * dx + dy * dy);
-}
-
-KMeansResult kmeans_fit_predict(Dataset dataset, int num_clusters, int num_iterations, double tolerance, int random_state) {
-    // TODO: Implement K-means algorithm logic
-    // ...
-
-    // Temporary dummy implementation
-    KMeansResult result;
-    result.centroids = malloc(num_clusters * sizeof(Point));
-    result.labels = malloc(dataset.size * sizeof(int));
-    result.num_clusters = num_clusters;
-    result.inertia = 0.0;
-
-    // Assign dummy cluster centers and labels
-    for (int i = 0; i < num_clusters; i++) {
-        result.centroids[i] = dataset.data[i % dataset.size];
+    // Print cluster labels
+    printf("Cluster labels:\n");
+    for (int i = 0; i < n_samples; i++) {
+        printf("%d ", result.labels[i]);
     }
-    for (int i = 0; i < dataset.size; i++) {
-        result.labels[i] = i % num_clusters;
+    printf("\n");
+
+    // Print cluster centers
+    printf("Cluster centers:\n");
+    for (int i = 0; i < n_clusters; i++) {
+        for (int j = 0; j < n_features; j++) {
+            printf("%.2f ", result.cluster_centers[i * n_features + j]);
+        }
+        printf("\n");
     }
 
-    return result;
-}
+    // Compute distances to cluster centers
+    double* distances = kmeans_transform(X, n_samples, n_features, result.cluster_centers, n_clusters);
 
-#endif /* KMEANS_H */
+    // Print distances
+    printf("Distances to cluster centers:\n");
+    for (int i = 0; i < n_samples; i++) {
+        for (int j = 0; j < n_clusters; j++) {
+            printf("%.2f ", distances[i * n_clusters + j]);
+        }
+        printf("\n");
+    }
+
+    // Compute inertia (sum of squared distances)
+    double inertia = kmeans_score(X, n_samples, n_features, result.cluster_centers, n_clusters);
+    printf("Inertia: %.2f\n", inertia);
+
+    // Free allocated memory
+    free_kmeans_result(result);
+    free(distances);
+
+    return 0;
+}
